@@ -1,20 +1,21 @@
-#ifndef NOCOPYABLE_H
-#define NOCOPYABLE_H
+#ifndef NONCOPYABLE_H
+#define NONCOPYABLE_H
 
 namespace mini_muduo
 {
-	class nocopyable
-	{
 
-	public:
-		nocopyable(const nocopyable&) = delete;
-		nocopyable& operator=(const nocopyable&) = delete;
+class noncopyable
+{
 
-	protected:
-		nocopyable() = default;
-		~nocopyable() = default;
+public:
+	noncopyable(const noncopyable&) = delete;
+	noncopyable& operator=(const noncopyable&) = delete;
 
-	};//class nocopyable
+protected:
+	noncopyable() = default;
+	~noncopyable() = default;
+
+};//class noncopyable
 
 } //namespace mini_muduo
 
