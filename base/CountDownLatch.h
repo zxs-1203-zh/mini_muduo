@@ -12,7 +12,7 @@ class CountDownLatch
 {
 
 public:
-	CountDownLatch(int count);
+	explicit CountDownLatch(int count);
 
 	void wait();
 
