@@ -1,7 +1,7 @@
 #include "CountDownLatch.h"
 #include <mutex>
 
-using namespace muduo;
+using namespace mini_muduo;
 
 
 CountDownLatch::CountDownLatch(int count):
