@@ -1,10 +1,13 @@
+#include <cstdio>
 #include <ctime>
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <sys/prctl.h>
 #include <assert.h>
+#include <utility>
 #include "Thread.h"
 #include "CurrentThread.h"
+#include "Timestamp.h"
 
 namespace mini_muduo
 {
@@ -90,13 +93,26 @@ void* startThread(void *obj)
 
 }//detail
 
+void CurrentThread::cacheTid()
+{
+	if(t_cachedTid ==0)
+	{
+		t_cachedTid = detail::gettid();
+		t_tidStringLength = ::snprintf(
+				t_tidString,
+				sizeof(t_tidString),
+				"%5d",
+				t_cachedTid);
+	}
+}
+
 Thread::Thread(ThreadFunc fuc, const string& n):
 	started_(false),
 	joined_(false),
 	pthreadId_(0),
 	tid_(0),
 	name_(n),
-	latch_(0),
+	latch_(1),
 	fuc_(fuc)
 {
 	setDefaultName();
@@ -128,13 +144,11 @@ bool CurrentThread::isMainThread()
 
 void CurrentThread::sleepUsec(int64_t usec)
 {
-	//make it in Timestamp
-#define kMicroSecondsPerSecond 1000 * 1000
 	struct timespec tm = {0, 0};
 	tm.tv_sec = static_cast<time_t>(
-			usec / kMicroSecondsPerSecond);
+			usec / Timestamp::kMicroSecondsPerSecond);
 	tm.tv_nsec = static_cast<time_t>(
-			usec % kMicroSecondsPerSecond * 1000);
+			usec % Timestamp::kMicroSecondsPerSecond * 1000);
 	::nanosleep(&tm, NULL);
 }
 
@@ -145,7 +159,7 @@ void Thread::start()
 	assert(!started_);
 	started_ = true;
 	detail::ThreadData *data = new detail::ThreadData(
-			fuc_, &tid_, &latch_, name_);
+			std::move(fuc_), &tid_, &latch_, name_);
 	if(pthread_create(&pthreadId_, NULL, &detail::startThread,
 				static_cast<void *>(data)))
 	{
