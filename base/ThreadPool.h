@@ -23,7 +23,7 @@ class ThreadPool
 public:
 	typedef std::function<void()> Task;
 
-	ThreadPool(const string& nameArg = string("Threadpool"));
+	explicit ThreadPool(const string& nameArg = string("Threadpool"));
 	~ThreadPool();
 
 	void setMaxQueueSize(int maxSize);
@@ -34,16 +34,27 @@ public:
 
 	void stop();
 
-	void run(const Task& task);
+	void run(Task task);
+
+	const string& name()const
+	{
+		return name_;
+	}
+
+	std::size_t queueSize()const
+	{
+		std::lock_guard<std::mutex> lk(mut_);
+		return tasks_.size();
+	}
 
 private:
 	void runInthread();
-	bool isFull();
+	bool isFull()const;
 	Task take();
 
 	Task threadInitCallBack_;
 
-	std::mutex mut_;
+	mutable std::mutex mut_;
 	std::condition_variable notFull_;
 	std::condition_variable notEmpty_;
 	std::size_t maxSize_;

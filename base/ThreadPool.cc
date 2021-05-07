@@ -43,26 +43,35 @@ void ThreadPool::start(int numThreads)
 	for(int i = 0; i < numThreads; ++i)
 	{
 		
-		snprintf(buf, sizeof(buf), "%d", numThreads);
+		snprintf(buf, sizeof(buf), "%d", i + 1);
 
 		threads_.emplace_back(new Thread(
 					std::bind(&ThreadPool::runInthread, this),
 					name_ + buf));
 		threads_[i]->start();
+	}
 
+	if(numThreads == 0 && threadInitCallBack_)
+	{
+		threadInitCallBack_();
 	}
 }
 
 void ThreadPool::stop()
 {
-	running = false;
+	{
+		std::lock_guard<std::mutex> lk(mut_);
+		running = false;
+		notEmpty_.notify_all();
+		notFull_.notify_all();
+	}
 	for(auto& thread: threads_)
 	{
 		thread->join();
 	}
 }
 
-void ThreadPool::run(const Task& task)
+void ThreadPool::run(Task task)
 {
 	if(threads_.empty())
 	{
@@ -72,7 +81,12 @@ void ThreadPool::run(const Task& task)
 
 	std::unique_lock<std::mutex> lk(mut_);
 
-	notFull_.wait(lk, [this]{return !this->isFull();});
+	notFull_.wait(lk, [this]{return !(this->isFull() && running);});
+
+	if(!running)
+	{
+		return;
+	}
 
 	tasks_.push_back(task);
 
@@ -90,7 +104,7 @@ void ThreadPool::runInthread()
 
 		while(running)
 		{
-			Task task(take());
+			Task task = take();
 			if(task)
 			{
 				task();
@@ -103,30 +117,33 @@ void ThreadPool::runInthread()
 	}
 }
 
-bool ThreadPool::isFull()
+bool ThreadPool::isFull()const
 {
 	//when this function is called, the thread have already
 	//locked the mut_
 	
-	return tasks_.size() >= maxSize_;
+	return maxSize_ > 0 && tasks_.size() >= maxSize_;
 }
 
 ThreadPool::Task ThreadPool::take()
 {
 	Task task;
 
-	std::unique_lock<std::mutex> lk;
+	std::unique_lock<std::mutex> lk(mut_);
 	
 	notEmpty_.wait(lk, 
 			[this]{
-				return !tasks_.empty() || !running;
+				return !(this->tasks_.empty() && this->running);
 			});
 
 	if(!tasks_.empty())
 	{
 		task = tasks_.front();
 		tasks_.pop_front();
-		notFull_.notify_one();
+		if(maxSize_ > 0)
+		{
+			notFull_.notify_one();
+		}
 	}
 	return task;
 }
