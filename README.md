@@ -8,4 +8,3 @@
 
 ## 与muduo的差别
 * 使用stl的mutex与condition_variable,而不是自己实现
-* 对于线程池的任务队列,使用自己实现的线程安全队列而非deque
