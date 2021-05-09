@@ -91,7 +91,7 @@ inline bool operator==(Timestamp lhs, Timestamp rhs)
 		lhs.microSecondsFromEpoch();
 }
 
-inline double TimeDifference(
+inline double timeDifference(
 		Timestamp high, 
 		Timestamp low
 		)

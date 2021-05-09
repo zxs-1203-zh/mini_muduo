@@ -1,26 +1,69 @@
-#ifndef PROCESS_INFO_H
-#define PROCESS_INFO_H
+// Use of this source code is governed by a BSD-style license
+// that can be found in the License file.
 
-#include <unistd.h>
+// Author: Shuo Chen (chenshuo at chenshuo dot com)
+//
+// This is a public header file, it must only include public header files.
+
+#ifndef MUDUO_BASE_PROCESSINFO_H
+#define MUDUO_BASE_PROCESSINFO_H
+
+#include "StringPiece.h"
+#include "Timestamp.h"
+#include <vector>
+#include <sys/types.h>
 #include <string>
-
 
 namespace mini_muduo
 {
-
-using std::string;
+	using std::string;
 
 namespace ProcessInfo
 {
+  pid_t pid();
+  string pidString();
+  uid_t uid();
+  string username();
+  uid_t euid();
+  Timestamp startTime();
+  int clockTicksPerSecond();
+  int pageSize();
+  bool isDebugBuild();  // constexpr
 
-pid_t pid();
-string pidString();
+  string hostname();
+  string procname();
+  StringPiece procname(const string& stat);
 
-string hostname();
+  /// read /proc/self/status
+  string procStatus();
 
-}//ProcessInfo
+  /// read /proc/self/stat
+  string procStat();
 
-}//mini_muduo
+  /// read /proc/self/task/tid/stat
+  string threadStat();
 
+  /// readlink /proc/self/exe
+  string exePath();
 
-#endif
+  int openedFiles();
+  int maxOpenFiles();
+
+  struct CpuTime
+  {
+    double userSeconds;
+    double systemSeconds;
+
+    CpuTime() : userSeconds(0.0), systemSeconds(0.0) { }
+
+    double total() const { return userSeconds + systemSeconds; }
+  };
+  CpuTime cpuTime();
+
+  int numThreads();
+  std::vector<pid_t> threads();
+}  // namespace ProcessInfo
+
+}  // namespace mini_muduo
+
+#endif  // MUDUO_BASE_PROCESSINFO_H
