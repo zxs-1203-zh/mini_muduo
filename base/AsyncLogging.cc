@@ -9,6 +9,7 @@
 
 #include <mutex>
 #include <stdio.h>
+#include <chrono>
 
 using namespace mini_muduo;
 
@@ -74,11 +75,13 @@ void AsyncLogging::threadFunc()
     assert(buffersToWrite.empty());
 
     {
-  	  std::lock_guard<std::mutex> lk(mutex_);
-      if (buffers_.empty())  // unusual usage!
-      {
-		  sleep(flushInterval_);
-      }
+  	  std::unique_lock<std::mutex> lk(mutex_);
+	  //#include <chrono> //this only for c++14
+	  //using namespace std::chrono_literals;
+      //cond_.wait_for(lk, 3000ms, [&]{return !buffers_.empty();});
+	  std::chrono::seconds drt(flushInterval_);
+	  cond_.wait_for(lk, drt, [&]{return !buffers_.empty();});
+
       buffers_.push_back(std::move(currentBuffer_));
       currentBuffer_ = std::move(newBuffer1);
       buffersToWrite.swap(buffers_);

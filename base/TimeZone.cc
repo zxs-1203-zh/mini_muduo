@@ -278,7 +278,7 @@ TimeZone::TimeZone(int eastOfUtc, const char* name)
 struct tm TimeZone::toLocalTime(time_t seconds) const
 {
   struct tm localTime;
-  memset((void *) &localtime, 0, sizeof(localTime));
+  memset(&localTime, 0, sizeof(localTime));
   assert(data_ != NULL);
   const Data& data(*data_);
 
@@ -323,7 +323,7 @@ time_t TimeZone::fromLocalTime(const struct tm& localTm) const
 struct tm TimeZone::toUtcTime(time_t secondsSinceEpoch, bool yday)
 {
   struct tm utc;
-  memset((void *) &utc, 0, sizeof(utc));
+  memset(&utc, 0, sizeof(utc));
   utc.tm_zone = "GMT";
   int seconds = static_cast<int>(secondsSinceEpoch % kSecondsPerDay);
   int days = static_cast<int>(secondsSinceEpoch / kSecondsPerDay);

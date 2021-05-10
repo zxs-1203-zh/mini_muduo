@@ -9,7 +9,7 @@
 #include "noncopyable.h"
 #include "StringPiece.h"
 #include <assert.h>
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 #include <string>
 
 namespace mini_muduo
@@ -56,7 +56,10 @@ class FixedBuffer : noncopyable
   void add(size_t len) { cur_ += len; }
 
   void reset() { cur_ = data_; }
-  void bzero() { memZero(data_, sizeof data_); }
+  void bzero() 
+  { 
+	  memset(data_, 0, sizeof(data_));
+  }
 
   // for used by GDB
   const char* debugString();

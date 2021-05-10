@@ -8,6 +8,7 @@
 
 #include <mutex>
 #include <pthread.h>
+#include <assert.h>
 
 #include "noncopyable.h"
 

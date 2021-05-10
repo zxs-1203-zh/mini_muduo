@@ -41,7 +41,7 @@ class BoundedBlockingQueue : noncopyable
   void put(T&& x)
   {
 	std::unique_lock<std::mutex> lk(mutex_);
-	notFull_.wait(lk, [this]{!queue_.full();});
+	notFull_.wait(lk, [&]{!queue_.full();});
     assert(!queue_.full());
     queue_.push_back(std::move(x));
     notEmpty_.notify_one();
@@ -50,7 +50,7 @@ class BoundedBlockingQueue : noncopyable
   T take()
   {
 	std::unique_lock<std::mutex> lk(mutex_);
-	notEmpty_.wait(lk, [this]{!queue_.empty();});
+	notEmpty_.wait(lk, [&]{!queue_.empty();});
     assert(!queue_.empty());
     T front(std::move(queue_.front()));
     queue_.pop_front();

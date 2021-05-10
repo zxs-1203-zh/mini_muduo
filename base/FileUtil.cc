@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "FileUtil.h"
+#include "Logging.h"
 
 namespace mini_muduo
 {
@@ -163,30 +164,29 @@ AppendFile::~AppendFile()
 
 void AppendFile::append(const char* logline, size_t len)
 {
-	size_t writen;
+	size_t written = 0;
 
-	while(writen < len)
+	while(written != len)
 	{
-		size_t remain = len - writen;
+		size_t remain = len - written;
 		size_t n = write(logline, remain);
 		if(n != remain)
 		{
-			int err = ::ferror(fp_);
+			int err = ferror(fp_);
 			if(err)
 			{
 				char err_buf[512];
 				//Fix: use strerror_tl
 				::fprintf(stderr, "error in AppendFile::append:\
-						%s\n", strerror_r(err,
-						err_buf, sizeof(err_buf)));
+						%s\n", strerror_tl(err));
 				break;
 			}
 		}
 
-		writen += n;
+		written += n;
 	}
 
-	writenBytes_ += writen;
+	writenBytes_ += written;
 }
 
 void AppendFile::flush()
@@ -196,7 +196,7 @@ void AppendFile::flush()
 
 size_t AppendFile::write(const char* logline, size_t len)
 {
-	return ::fwrite_unlocked(buf_, 1, len, fp_);
+	return ::fwrite_unlocked(logline, 1, len, fp_);
 }
 
 }//FileUti

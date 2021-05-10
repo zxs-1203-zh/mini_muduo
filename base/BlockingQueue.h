@@ -37,7 +37,7 @@ class BlockingQueue : noncopyable
 
   void put(T&& x)
   {
-	std::lock_guard<std::mutex> lk(mutex_);
+    std::lock_guard<std::mutex> lk(mutex_);
     queue_.push_back(std::move(x));
     notEmpty_.notify_one();
   }
@@ -46,7 +46,7 @@ class BlockingQueue : noncopyable
   {
 	std::unique_lock<std::mutex> lk(mutex_);
     // always use a while-loop, due to spurious wakeup
-   	notEmpty_.wait(lk, [this]{return !this->queue_.empty();});
+   	notEmpty_.wait(lk, [&]{return !queue_.empty();});
 
     assert(!queue_.empty());
     T front(std::move(queue_.front()));

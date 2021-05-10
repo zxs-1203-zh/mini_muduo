@@ -7,6 +7,7 @@
 #include "CountDownLatch.h"
 #include "Atomic.h"
 #include "noncopyable.h"
+#include "CurrentThread.h"
 
 
 namespace mini_muduo
